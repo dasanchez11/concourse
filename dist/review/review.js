@@ -65,7 +65,6 @@ export class ReviewPage {
     }
     setDifferencesToLegible(differences, originalText) {
         let diff = { ...differences };
-        console.log({ diff });
         let changesArray = [];
         let currentIndex = 0;
         for (let i = 0; i < diff.ops.length; i++) {
@@ -99,7 +98,6 @@ export class ReviewPage {
             }
             if (op.hasOwnProperty("delete")) {
                 let deletedText = originalText.substring(currentIndex, currentIndex + op.delete);
-                console.log("Deleted text:", deletedText);
                 currentIndex += op.delete;
                 op.retain = op.delete;
                 delete op.delete;
@@ -157,7 +155,6 @@ export class ReviewPage {
     }
     onSaveDocument() {
         let finalValues = this.changesValues;
-        console.log({ finalValues });
         const checkboxes = document.querySelectorAll("ion-checkbox");
         Array.from(checkboxes).forEach((checkbox, index) => {
             const checkboxElement = checkbox;
