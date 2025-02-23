@@ -113,9 +113,8 @@ export class ReviewPage {
       }
 
       if (op.hasOwnProperty("insert")) {
-        // color it green
         if (op.insert.includes("\n")) {
-          op.insert = "⏎\n";
+          op.insert = op.insert.replace(/\n/g, "⏎\n");
         }
         op.attributes = {
           background: "#cce8cc",
@@ -157,13 +156,18 @@ export class ReviewPage {
   }
 
   changeEventListener(event: Event) {
+    const target = event.target as HTMLInputElement;
+    if (!target || !target.id) {
+      return;
+    }
+    this.onChangeCheckbox(target.id, (event as CustomEvent).detail.checked);
+    const buttonElement = document.getElementById(
+      `${this.pageId}-action-button`
+    ) as HTMLButtonElement;
+    if (!buttonElement) {
+      return;
+    }
     setTimeout(() => {
-      const buttonElement = document.getElementById(
-        `${this.pageId}-action-button`
-      ) as HTMLButtonElement;
-      if (!buttonElement) {
-        return;
-      }
       const areAllChecked = this.areAllChecked();
       buttonElement.disabled = !areAllChecked;
     }, 0);
@@ -178,8 +182,8 @@ export class ReviewPage {
     }
 
     const finalDocument = localStorage.getItem("FinalDocument");
-
-    this.changesValues
+    const localChanges = this.changesValues;
+    localChanges
       .filter((change) => !!change.after)
       .map((change) => change.after)
       .forEach((change) => {
@@ -193,41 +197,78 @@ export class ReviewPage {
         checkbox.setAttribute("label-placement", "end");
         checkbox.innerHTML = `${getDisplayName(change)}`;
         checkbox.id = `${change.id}`;
-        checkbox.addEventListener(
-          "ionChange",
-          this.changeEventListener.bind(this)
+
+        checkbox.replaceWith(checkbox.cloneNode(true));
+        checkbox.addEventListener("ionChange", (event) =>
+          this.changeEventListener(event)
         );
         editorContainer.appendChild(checkbox);
       });
   }
 
-  onSaveDocument() {
-    let finalValues = this.changesValues;
-    const checkboxes = document.querySelectorAll("ion-checkbox");
-    Array.from(checkboxes).forEach((checkbox, index) => {
-      const checkboxElement = checkbox as HTMLInputElement;
-      if (!checkboxElement.checked) {
-        finalValues = finalValues.map((change) => {
-          if (change.before.id === checkboxElement.id) {
-            return {
-              ...change,
-              before: {
-                insert: "",
-                attributes: { background: "", color: "" },
-                id: "",
-                hasChanges: false,
-              },
+  onChangeCheckbox(checkboxId: string, checked: boolean) {
+    this.changesValues = this.changesValues.map((change) => {
+      if (change.before.id === checkboxId) {
+        let updatedChange = { ...change };
+
+        if (checked) {
+          if (updatedChange.after?.insert) {
+            if (updatedChange.after.insert.includes("\n")) {
+              updatedChange.before.insert = updatedChange.after.insert.replace(
+                /⏎\n/g,
+                "\n"
+              );
+            } else {
+              updatedChange.before.insert = updatedChange.after.insert;
+            }
+          }
+          if (
+            updatedChange.after?.retain &&
+            updatedChange.after?.attributes.strike
+          ) {
+            console.log({ updatedChange });
+
+            updatedChange.before.delete = updatedChange.after.retain;
+          }
+          if (updatedChange.after?.attributes) {
+            updatedChange.before.attributes = {
+              ...updatedChange.after.attributes,
+              color: "",
+              background: "",
             };
           }
-          return change;
-        });
-      }
-    });
-    const finalNodes = finalValues.map((change) => change.before);
+        } else {
+          if (updatedChange.after?.insert) {
+            updatedChange.before.insert = "";
+          }
+          if (
+            updatedChange.after?.retain &&
+            updatedChange.after?.attributes.strike
+          ) {
+            updatedChange.before.insert =
+              updatedChange.after.attributes.deletedText;
+            updatedChange.before.retain = updatedChange.after.delete;
+            updatedChange.before.delete = undefined;
+          }
+          if (updatedChange.after?.attributes) {
+            updatedChange.before.attributes = {} as any;
+          }
+        }
 
+        return updatedChange;
+      }
+      return change;
+    });
+
+    const finalNodes = this.changesValues.map((change) => change.before);
     const reviewQuillNodes = this.hiddenQuill.getQuill().getContents();
     const composedValue = reviewQuillNodes.compose({ ops: finalNodes });
     this.reviewQuill.setRitchText(composedValue);
+
+    this.reviewQuill.getQuill().update();
+  }
+
+  onSaveDocument() {
     const finalDocument = JSON.stringify(this.reviewQuill.getRitchText());
     localStorage.setItem("FinalDocument", finalDocument);
     AppButtons.disableButton(`${this.pageId}-action-button`);
