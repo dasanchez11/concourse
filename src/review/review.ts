@@ -226,8 +226,6 @@ export class ReviewPage {
             updatedChange.after?.retain &&
             updatedChange.after?.attributes.strike
           ) {
-            console.log({ updatedChange });
-
             updatedChange.before.delete = updatedChange.after.retain;
           }
           if (updatedChange.after?.attributes) {
