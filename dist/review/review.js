@@ -1,21 +1,23 @@
 import { AppButtons } from "../shared/button.js";
 import { QuillEditor } from "../shared/quill.js";
-import { getDisplayName } from "../shared/utils.js";
+import { cleanEntireElement, getDisplayName } from "../shared/utils.js";
 export class ReviewPage {
     constructor() {
         this.pageId = "review";
         this.editorContainerId = "review-editor-container";
         this.reviewQuill = new QuillEditor();
         this.changesValues = [];
-        this.reviewQuill.loadQuillEditor(this.editorContainerId);
         this.onPageLoad();
     }
     onPageLoad() {
-        this.getDocumentsDifferences();
         const sectionContainer = document.getElementById(this.pageId);
         if (!sectionContainer) {
             return;
         }
+        cleanEntireElement(sectionContainer, "");
+        this.addTitleContents();
+        this.reviewQuill.loadQuillEditor(this.editorContainerId);
+        this.getDocumentsDifferences();
         this.reviewQuill.disableEditor(sectionContainer);
         const checkboxesContentContainer = document.getElementById("checkboxes-content-container");
         if (checkboxesContentContainer) {
@@ -183,6 +185,25 @@ export class ReviewPage {
         const finalDocument = JSON.stringify(this.reviewQuill.getRitchText());
         localStorage.setItem("FinalDocument", finalDocument);
         AppButtons.disableButton(`${this.pageId}-action-button`);
+    }
+    addTitleContents() {
+        const title = document.createElement("h2");
+        title.innerHTML = "Review Changes";
+        const description = document.createElement("p");
+        description.innerHTML = "Review the changes to the contract";
+        const reviewContainer = document.createElement("div");
+        reviewContainer.className = "review-container";
+        reviewContainer.innerHTML = `
+              <div id="review-editor-container"></div>
+              <div id="checkboxes-content-container"></div>
+    `;
+        const sectionContainer = document.getElementById(this.pageId);
+        if (!sectionContainer) {
+            return;
+        }
+        sectionContainer.appendChild(title);
+        sectionContainer.appendChild(description);
+        sectionContainer.appendChild(reviewContainer);
     }
 }
 new ReviewPage();

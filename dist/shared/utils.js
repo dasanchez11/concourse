@@ -15,4 +15,7 @@ export const getDisplayName = (change) => {
 export const getDisplayTextChanged = (originalText, startIndex, finishIndex) => {
     return originalText.substring(startIndex, finishIndex);
 };
+export const cleanEntireElement = (element, name) => {
+    element.innerHTML = ` <h2>${name}</h2>`;
+};
 //# sourceMappingURL=utils.js.map

@@ -1,5 +1,6 @@
 import { AppButtons } from "../shared/button.js";
 import { QuillEditor } from "../shared/quill.js";
+import { cleanEntireElement } from "../shared/utils.js";
 class CompletePage {
     constructor() {
         this.pageId = "complete";
@@ -11,6 +12,7 @@ class CompletePage {
         if (!sectionContainer) {
             return;
         }
+        cleanEntireElement(sectionContainer, "Contract Complete");
         const localFinalDocument = localStorage.getItem("FinalDocument");
         if (!localFinalDocument) {
             const noDocumentsText = document.createElement("p");

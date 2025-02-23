@@ -21,13 +21,13 @@ const jsRouter = (page) => {
     const date = new Date().getTime();
     switch (page) {
         case "create":
-            return import(`./start/start.js`);
+            return import(`./start/start.js?v=${date}`);
         case "edit":
-            return import("./edit/edit.js");
+            return import(`./edit/edit.js?v=${date}`);
         case "review":
-            return import("./review/review.js");
+            return import(`./review/review.js?v=${date}`);
         case "complete":
-            return import("./complete/complete.js");
+            return import(`./complete/complete.js?v=${date}`);
         default:
             return import("./start/start.js");
     }
