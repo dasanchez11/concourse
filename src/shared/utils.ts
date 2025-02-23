@@ -19,3 +19,7 @@ export const getDisplayTextChanged = (
 ) => {
   return originalText.substring(startIndex, finishIndex);
 };
+
+export const cleanEntireElement = (element: HTMLElement, name: string) => {
+  element.innerHTML = ` <h2>${name}</h2>`;
+};
