@@ -6,6 +6,8 @@ export interface ReviewChanges {
     background: string;
     color: string;
     strike?: boolean;
+    deletedText?: string;
+    attributeChange?: string;
   };
   hasChanges: boolean;
 }

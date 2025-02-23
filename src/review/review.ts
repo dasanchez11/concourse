@@ -1,6 +1,7 @@
 import { AppButtons } from "../shared/button.js";
 import { QuillEditor } from "../shared/quill.js";
-import { ChangesArrayValues, ReviewChanges } from "./review.model.js";
+import { getDisplayName } from "../shared/utils.js";
+import { ChangesArrayValues } from "./review.model.js";
 
 export class ReviewPage {
   private pageId = "review";
@@ -71,23 +72,46 @@ export class ReviewPage {
     const reviewQuillNodes = this.reviewQuill.getQuill().getContents();
 
     const differences = hiddenQuillNodes.diff(reviewQuillNodes);
+
     const { differences: changedDifferences, changes } =
-      this.setDifferencesToLegible(differences);
+      this.setDifferencesToLegible(
+        differences,
+        this.hiddenQuill.getQuill().getText()
+      );
     this.changesValues = changes;
     const composedValue = hiddenQuillNodes.compose(changedDifferences);
     this.reviewQuill.setRitchText(composedValue);
     this.paintChangesOnUi();
   }
 
-  setDifferencesToLegible(differences: any) {
-    console.log({ differences });
+  setDifferencesToLegible(differences: any, originalText: string) {
     let diff = { ...differences };
+    console.log({ diff });
     let changesArray: ChangesArrayValues[] = [];
+    let currentIndex = 0;
     for (let i = 0; i < diff.ops.length; i++) {
       const op = diff.ops[i];
       op["id"] = crypto.randomUUID();
       const before = { ...op };
       let after;
+
+      if ("retain" in op) {
+        if (op.attributes) {
+          const attributeChange = originalText.substring(
+            currentIndex,
+            currentIndex + op.retain
+          );
+          op.attributes = {
+            ...op.attributes,
+            background: "#cce8cc",
+            color: "#003700",
+            attributeChange,
+          };
+          after = { ...op };
+        }
+        currentIndex += op.retain;
+      }
+
       if (op.hasOwnProperty("insert")) {
         // color it green
         if (op.insert.includes("\n")) {
@@ -99,16 +123,21 @@ export class ReviewPage {
         };
         after = { ...op };
       }
+
       if (op.hasOwnProperty("delete")) {
-        // keep the text
-        console.log({ op });
+        let deletedText = originalText.substring(
+          currentIndex,
+          currentIndex + op.delete
+        );
+        console.log("Deleted text:", deletedText);
+        currentIndex += op.delete;
         op.retain = op.delete;
         delete op.delete;
-        // but color it red and struckthrough
         op.attributes = {
           background: "#e8cccc",
           color: "#370000",
           strike: true,
+          deletedText,
         };
         after = { ...op };
       }
@@ -119,6 +148,10 @@ export class ReviewPage {
 
   areAllChecked(): boolean {
     const checkboxes = document.querySelectorAll("ion-checkbox");
+    const finalDocument = localStorage.getItem("FinalDocument");
+    if (finalDocument) {
+      return false;
+    }
     return Array.from(checkboxes).every(
       (checkbox) => checkbox.ariaChecked !== "mixed"
     );
@@ -144,17 +177,22 @@ export class ReviewPage {
     if (!editorContainer) {
       return;
     }
+
+    const finalDocument = localStorage.getItem("FinalDocument");
+
     this.changesValues
       .filter((change) => !!change.after)
       .map((change) => change.after)
       .forEach((change) => {
-        const checkbox = document.createElement("ion-checkbox");
-        // @ts-expect-error: indeterminate comes from ionic
+        const checkbox = document.createElement(
+          "ion-checkbox"
+        ) as HTMLInputElement;
         checkbox.indeterminate = true;
+        checkbox.disabled = !!finalDocument;
         checkbox.style.color = change.attributes.color;
         checkbox.style.background = change.attributes.background;
         checkbox.setAttribute("label-placement", "end");
-        checkbox.innerHTML = `${change.insert}`;
+        checkbox.innerHTML = `${getDisplayName(change)}`;
         checkbox.id = `${change.id}`;
         checkbox.addEventListener(
           "ionChange",
@@ -166,13 +204,22 @@ export class ReviewPage {
 
   onSaveDocument() {
     let finalValues = this.changesValues;
+    console.log({ finalValues });
     const checkboxes = document.querySelectorAll("ion-checkbox");
     Array.from(checkboxes).forEach((checkbox, index) => {
       const checkboxElement = checkbox as HTMLInputElement;
       if (!checkboxElement.checked) {
         finalValues = finalValues.map((change) => {
           if (change.before.id === checkboxElement.id) {
-            return { ...change, before: { ...change.before, insert: "" } };
+            return {
+              ...change,
+              before: {
+                insert: "",
+                attributes: { background: "", color: "" },
+                id: "",
+                hasChanges: false,
+              },
+            };
           }
           return change;
         });

@@ -23,8 +23,15 @@ class EditPage {
     this.sectionContainer = sectionContainer;
     sectionContainer.appendChild(button);
     const initialDocument = localStorage.getItem("InitialDoument");
+    const editedDoument = localStorage.getItem("EditedDoument");
 
-    this.editQuill.setRitchText(JSON.parse(initialDocument || "{}"));
+    if (editedDoument) {
+      button.disabled = true;
+      this.editQuill.setRitchText(JSON.parse(editedDoument || "{}"));
+    } else {
+      this.editQuill.setRitchText(JSON.parse(initialDocument || "{}"));
+    }
+
     AppButtons.attachListenerToButton(
       `${this.pageId}-actionbutton`,
       this.onSaveDocument.bind(this)

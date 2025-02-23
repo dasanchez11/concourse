@@ -6,7 +6,6 @@ class CompletePage {
   public completeQuill = new QuillEditor();
 
   constructor() {
-    this.completeQuill.loadQuillEditor(this.pageId);
     this.onPageLoad();
   }
 
@@ -22,6 +21,7 @@ class CompletePage {
       sectionContainer.appendChild(noDocumentsText);
       return;
     }
+    this.completeQuill.loadQuillEditor(this.pageId);
     const button = AppButtons.createButton(
       `${this.pageId}-action-button`,
       "Generate New Document"

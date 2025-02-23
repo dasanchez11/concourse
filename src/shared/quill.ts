@@ -9,7 +9,7 @@ export class QuillEditor {
     const editorContainerNode = document.createElement("div");
     editorContainerNode.id = `${elementId}-editor-container`;
     createDiv.appendChild(editorContainerNode);
-
+    // @ts-expect-error: indeterminate comes from ionic
     const quill = new Quill(`#${elementId}-editor-container`, {
       theme: "snow",
     }) as unknown as any;
