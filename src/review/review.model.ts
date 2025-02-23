@@ -1,7 +1,8 @@
 export interface ReviewChanges {
   id: string;
   insert?: string;
-  delete?: string;
+  delete?: number;
+  retain?: number;
   attributes: {
     background: string;
     color: string;
