@@ -15,19 +15,22 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
   (segment as any).addEventListener("ionChange", segmentChanged);
+  jsRouter();
 });
 
-const jsRouter = (page: string) => {
+const jsRouter = (page?: string) => {
+  const date = new Date().getTime();
+
   switch (page) {
     case "create":
-      return import("./start/start.js");
+      return import(`./start/start.js`);
     case "edit":
       return import("./edit/edit.js");
-    // case "review":
-    //   return import("./pages/review.js");
-    // case "complete":
-    //   return import("./pages/complete.js");
+    case "review":
+      return import("./review/review.js");
+    case "complete":
+      return import("./complete/complete.js");
     default:
-      return import("./edit/edit.js");
+      return import("./start/start.js");
   }
 };

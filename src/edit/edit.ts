@@ -1,25 +1,52 @@
+import { AppButtons } from "../shared/button.js";
 import { QuillEditor } from "../shared/quill.js";
 
-class EditPage extends QuillEditor {
+class EditPage {
   private pageId = "edit";
+  public editQuill = new QuillEditor();
+  private sectionContainer?: HTMLElement;
 
   constructor() {
-    super();
-    this.loadQuillEditor(this.pageId);
+    this.editQuill.loadQuillEditor(this.pageId);
     this.onPageLoad();
   }
 
   onPageLoad() {
-    const initialDocument = localStorage.getItem("InitialDoument");
-    if (initialDocument) {
-      this.setRitchText(JSON.parse(initialDocument));
+    const button = AppButtons.createButton(
+      `${this.pageId}-actionbutton`,
+      "Save"
+    );
+    const sectionContainer = document.getElementById(this.pageId);
+    if (!sectionContainer) {
+      return;
     }
+    this.sectionContainer = sectionContainer;
+    sectionContainer.appendChild(button);
+    const initialDocument = localStorage.getItem("InitialDoument");
+
+    this.editQuill.setRitchText(JSON.parse(initialDocument || "{}"));
+    AppButtons.attachListenerToButton(
+      `${this.pageId}-actionbutton`,
+      this.onSaveDocument.bind(this)
+    );
   }
 
   onSaveDocument() {
-    console.log("onSaveDocument");
-    const richTextContents = JSON.stringify(this.getRitchText());
+    const richTextContents = JSON.stringify(this.editQuill.getRitchText());
     localStorage.setItem("EditedDoument", richTextContents);
+    AppButtons.disableButton(`${this.pageId}-actionbutton`);
+    if (this.sectionContainer) {
+      this.editQuill.disableEditor(this.sectionContainer);
+    }
+  }
+
+  checkEditedDocument() {
+    const editeDocument = localStorage.getItem("EditedDoument");
+    if (!editeDocument || !this.sectionContainer) {
+      return;
+    }
+    AppButtons.disableButton(`${this.pageId}-actionbutton`);
+    this.editQuill.disableEditor(this.sectionContainer);
   }
 }
 

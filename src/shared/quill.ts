@@ -7,10 +7,10 @@ export class QuillEditor {
       return;
     }
     const editorContainerNode = document.createElement("div");
-    editorContainerNode.id = "editor-container";
+    editorContainerNode.id = `${elementId}-editor-container`;
     createDiv.appendChild(editorContainerNode);
 
-    const quill = new Quill("#editor-container", {
+    const quill = new Quill(`#${elementId}-editor-container`, {
       theme: "snow",
     }) as unknown as any;
 
@@ -23,5 +23,21 @@ export class QuillEditor {
 
   setRitchText(value: any) {
     this.quill.setContents(value);
+  }
+
+  getQuill() {
+    return this.quill;
+  }
+
+  disableEditor(referenceNode: HTMLElement) {
+    this.quill.disable();
+    const toolbar = referenceNode.querySelector(".ql-toolbar");
+    if (toolbar) {
+      (toolbar as HTMLDivElement).style.display = "none";
+    }
+    const qlContainer = referenceNode.querySelector(".ql-container");
+    if (qlContainer) {
+      (qlContainer as HTMLDivElement).style.border = "none";
+    }
   }
 }
