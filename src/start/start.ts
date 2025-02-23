@@ -1,5 +1,6 @@
 import { QuillEditor } from "../shared/quill.js";
 import { AppButtons } from "../shared/button.js";
+import { cleanEntireElement } from "../shared/utils.js";
 
 class StartPage {
   private pageId = "create";
@@ -7,7 +8,6 @@ class StartPage {
   private sectionContainer?: HTMLElement;
 
   constructor() {
-    this.createQuill.loadQuillEditor(this.pageId);
     this.onPageLoad();
   }
 
@@ -29,6 +29,8 @@ class StartPage {
     if (!sectionContainer) {
       return;
     }
+    cleanEntireElement(sectionContainer, "Create Contract");
+    this.createQuill.loadQuillEditor(this.pageId);
     this.sectionContainer = sectionContainer;
     sectionContainer.appendChild(button);
     const initialDocument = localStorage.getItem("InitialDoument");

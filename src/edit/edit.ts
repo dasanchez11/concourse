@@ -1,5 +1,6 @@
 import { AppButtons } from "../shared/button.js";
 import { QuillEditor } from "../shared/quill.js";
+import { cleanEntireElement } from "../shared/utils.js";
 
 class EditPage {
   private pageId = "edit";
@@ -7,7 +8,6 @@ class EditPage {
   private sectionContainer?: HTMLElement;
 
   constructor() {
-    this.editQuill.loadQuillEditor(this.pageId);
     this.onPageLoad();
   }
 
@@ -20,11 +20,14 @@ class EditPage {
     if (!sectionContainer) {
       return;
     }
+    cleanEntireElement(sectionContainer, "Edit Contract");
+    this.editQuill.loadQuillEditor(this.pageId);
     this.sectionContainer = sectionContainer;
-    sectionContainer.appendChild(button);
+
     const initialDocument = localStorage.getItem("InitialDoument");
     const editedDoument = localStorage.getItem("EditedDoument");
 
+    sectionContainer.appendChild(button);
     if (editedDoument) {
       button.disabled = true;
       this.editQuill.setRitchText(JSON.parse(editedDoument || "{}"));
